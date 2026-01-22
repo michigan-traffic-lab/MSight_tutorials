@@ -8,8 +8,7 @@ We will:
 2. Launch the **MSight WebSocket client node** to connect to this server and publish the received data to a topic.
 3. Use a **Bytes Viewer node** to subscribe to the topic and verify that the messages are indeed received.
 
-> *Figure: Overall setup*
-> (WebSocket Server) → (MSight WebSocket Client Node) → (MSight Pub/Sub Topic) → (Bytes Viewer Node)
+![Image Node Example](../assets/images/example_websocket_client.png){ width="100%" }
 
 ---
 
@@ -22,7 +21,7 @@ We will:
   docker run -d --name redis -p 6379:6379 redis:latest
   ```
 
-  Or install it locally by following the instructions here: [this link](xxxx)
+  Or install it locally by following the instructions here: [this link](https://redis.io/docs/latest/operate/oss_and_stack/install/archive/install-redis/)
 * **Python ****************`websockets`**************** module** installed. Install it with:
 
 ```bash
@@ -116,12 +115,7 @@ Next, we start the MSight WebSocket client node, which will:
 Run the following command:
 
 ```bash
-msight_launch_websocket_client \
-  -n websocket_node \
-  -t websocket_topic \
-  -u ws://localhost:8765 \
-  --sensor-name websocket_sensor \
-  -g 0
+msight_launch_websocket_client -n websocket_node -pt websocket_topic --server-url ws://localhost:8765 --sensor-name websocket_sensor -g 0
 ```
 
 ### Command Explanation
@@ -129,10 +123,10 @@ msight_launch_websocket_client \
 * `-n websocket_node`
   Sets the **node name** to `websocket_node`. This is how the node will appear in MSight status and logs.
 
-* `-t websocket_topic`
+* `-pt websocket_topic`
   The **publish topic**. All received WebSocket messages (wrapped as `BytesData`) will be published to this topic.
 
-* `-u ws://localhost:8765`
+* `--server-url ws://localhost:8765`
   The **WebSocket server URL** to connect to. Here we use the test server we just started.
 
 * `--sensor-name websocket_sensor`
@@ -155,14 +149,17 @@ Finally, we use the **Bytes Viewer node** to subscribe to the same topic and pri
 Run:
 
 ```bash
-msight_launch_bytes_viewer -t websocket_topic
+msight_launch_bytes_viewer -st websocket_topic --name bytes_viewer
 ```
 
 The Bytes Viewer node will subscribe to `websocket_topic` and print out the received `BytesData` content. You should see output corresponding to the dummy messages sent by the WebSocket server, for example:
 
 ```text
-[websocket_topic] dummy message at 2025-11-17T01:23:45
-[websocket_topic] dummy message at 2025-11-17T01:23:47
+2026-01-22 16:54:42,724 - testing - websocket_node - INFO :: Got data from websocket_sensor, size: 36 bytes, time: 1769118882.7247639
+2026-01-22 16:54:44,734 - testing - websocket_node - INFO :: Got data from websocket_sensor, size: 36 bytes, time: 1769118884.7346323
+2026-01-22 16:54:46,741 - testing - websocket_node - INFO :: Got data from websocket_sensor, size: 36 bytes, time: 1769118886.7412894
+2026-01-22 16:54:48,753 - testing - websocket_node - INFO :: Got data from websocket_sensor, size: 36 bytes, time: 1769118888.753773
+2026-01-22 16:54:50,757 - testing - websocket_node - INFO :: Got data from websocket_sensor, size: 36 bytes, time: 1769118890.7572286
 ...
 ```
 

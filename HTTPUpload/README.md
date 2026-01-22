@@ -10,9 +10,7 @@ In this tutorial, you will learn how to:
 
 This is exactly the pipeline shown in the figure:
 
-```
-RTSP Source → RTSP Node → MSight → HTTP Uploader Node → Your HTTP Server
-```
+![Image Node Example](./example_http_uploader.png){ width="100%" }
 
 ---
 
@@ -25,7 +23,7 @@ Before starting, make sure you have:
 
 ---
 
-# Step 1. Start an RTSP server using Docker Compose
+## Step 1. Start an RTSP server using Docker Compose
 
 Prepare a video file, name it `sample.mp4`. Create a file in the same folder called **docker-compose.yml**:
 
@@ -78,7 +76,7 @@ You now have a fully functional **RTSP video source** streaming your `sample.mp4
 
 ---
 
-# Step 2. Start Redis
+## Step 2. Start Redis
 
 MSight uses Redis internally for Pub/Sub.
 
@@ -92,18 +90,12 @@ Or use your own Redis installation.
 
 ---
 
-# Step 3. Launch the MSight RTSP Receiver Node
+## Step 3. Launch the MSight RTSP Receiver Node
 
 Run:
 
 ```bash
-msight_launch_rtsp \
-    -n rtsp_node \
-    -t rtsp_topic \
-    --sensor-name rtsp_sensor \
-    -u rtsp://localhost:8554/live.stream \
-    -g 0 \
-    --rtsp-transport tcp
+msight_launch_rtsp -n rtsp_node -pt rtsp_topic --sensor-name rtsp_sensor -u rtsp://localhost:8554/live.stream -g 0 --rtsp-transport tcp
 ```
 
 What this does:
@@ -118,7 +110,7 @@ Once you see logs showing frame reception, you’re ready for the next step.
 
 ---
 
-# Step 4. Start Your Custom HTTP Server
+## Step 4. Start Your Custom HTTP Server
 
 Create a file **custom_http_server.py**:
 
@@ -198,25 +190,19 @@ This server will:
 
 ---
 
-# Step 5. Launch the MSight HTTP Uploader Node
+## Step 5. Launch the MSight HTTP Uploader Node
 
 Run:
 
 ```bash
-msight_launch_http \
-    -t rtsp_topic \
-    -n http_uploader_node \
-    -g 9 \
-    -w 0 \
-    --partition-key-mode random \
-    --url http://localhost:8080
+msight_launch_http -st rtsp_topic -n http_uploader_node -g 9 -w 0 --partition-key-mode random --url http://localhost:8080
 ```
 
-### What each argument means:
+What each argument means:
 
 | Argument | Meaning |
 |---------|---------|
-| `-t rtsp_topic` | Subscribe to the frames published by RTSP node |
+| `-st rtsp_topic` | Subscribe to the frames published by RTSP node |
 | `-n http_uploader_node` | Name of this node |
 | `-g 9` | **Gap = 9** → upload every **10th** frame |
 | `-w 0` | No warm-up, upload immediately |
@@ -224,7 +210,7 @@ msight_launch_http \
 | `--partition-key-mode sensor_name` | Use the sensor name as the partition key |
 | `--url http://localhost:8080` | Your HTTP server’s URL |
 
-!!! tip "Important"
+!!! tip
     The HTTP uploader only sets the `X-Partition-Key` header.  
     If you want upstream routing (sticky load balancing), configure your load balancer  
     to hash on that header.
@@ -256,7 +242,7 @@ received_images/
     ...
 ```
 
-🎉 Congratulations — you now have a complete working pipeline that:
+# 🎉 Congratulations — you now have a complete working pipeline that:
 
 - Streams video  
 - Extracts frames  

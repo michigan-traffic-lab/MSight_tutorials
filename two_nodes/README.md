@@ -84,9 +84,6 @@ In this example, we’ll create **two nodes**:
 1. A **source node** that reads an image and publishes it.  
 2. A **viewer node** that subscribes to the same topic and displays the image.
 
-*(Illustration: two nodes connected through Redis Pub/Sub)*  
-![Image Node Example](../assets/images/example_two_nodes.png){ width="100%" }
-
 ---
 
 ### 🖼️ Prepare the Folder
@@ -143,10 +140,3 @@ You now understand:
 This is the foundation for building complex MSight pipelines.
 
 ---
-
-## 📚 Continue Exploring
-
-Try these extended tutorials next:
-
-- [Receiving Data from RTSP Source and Push to Cloud](../tutorials/data-streaming-pipeline.md)  
-- [Full Object Detection Pipeline with Roadside Camera](xxx.md)

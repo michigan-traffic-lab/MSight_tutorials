@@ -1,6 +1,6 @@
 # MSight Tutorial: Building and Testing a UDP Server Node
 
-This short tutorial walks you through setting up a **UDP Source Node** in MSight, sending bytes via a simple UDP client, and verifying that the messages are correctly published and received within the MSight system.
+A udp server node is a source node in MSight system that is setup, reading UDP packets from a specified port and publishing the received data to the pub/sub system. This short tutorial walks you through setting up a **UDP Source Node** in MSight, sending bytes via a simple UDP client, and verifying that the messages are correctly published and received within the MSight system.
 
 ## 📦 Prerequisites
 
@@ -34,11 +34,7 @@ You should see `msight-redis` in the list.
 Now start a UDP server node that listens on port **5000** and publishes received bytes to the topic `udp_topic`.
 
 ```bash
-msight_launch_udp_server \
-    -n udp_server_node \
-    -t udp_topic \
-    --sensor-name test_udp \
-    --port 5000
+msight_launch_udp_server -n udp_server_node -pt udp_topic --sensor-name test_udp --port 5000
 ```
 
 Expected output:
@@ -79,10 +75,7 @@ python test_udp_client.py
 ## 👀 Step 4: Launch a Bytes Viewer Node (Subscriber)
 
 ```bash
-msight_launch_bytes_viewer \
-    -n bytes_viewer \
-    -t udp_topic \
-    --filter-sensor-name test_udp
+msight_launch_bytes_viewer -n bytes_viewer -t udp_topic --filter-sensor-name test_udp
 ```
 
 Output example:

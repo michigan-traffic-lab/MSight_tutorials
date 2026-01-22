@@ -18,6 +18,20 @@ This forms the basic pipeline:
 
 ---
 
+## Prerequisites# RTSP Streaming Tutorial
+
+This tutorial demonstrates the **simplest end-to-end example** of using MSight to retrieve image data from a camera-like sensor. We will:
+
+1. Start a **local RTSP server** that streams a looping MP4 file.  
+2. Launch an **RTSP Receiver Node** in MSight that subscribes to the RTSP stream and publishes image frames to a topic.  
+3. Launch an **Image Viewer Node** that subscribes to the same topic and displays the incoming frames.
+
+This forms the basic pipeline:
+
+![Image Node Example](./example_rtsp_streaming.png){ width="100%" }
+
+---
+
 ## Prerequisites
 
 Make sure the following are installed and ready:
@@ -28,7 +42,7 @@ Make sure the following are installed and ready:
 
 ---
 
-# Step 1 — Start the RTSP Server
+## Step 1 — Start the RTSP Server
 
 Create a file named **`docker-compose.yml`** in the same directory as your `sample.mp4` video file:
 
@@ -85,7 +99,7 @@ rtsp://localhost:8554/live.stream
 
 ---
 
-# Step 2 — Start Redis
+## Step 2 — Start Redis
 
 Redis is required for MSight node registration and pub/sub communication.
 
@@ -97,12 +111,12 @@ docker run --rm -p 6379:6379 redis
 
 ---
 
-# Step 3 — Start the RTSP Receiver Node
+## Step 3 — Start the RTSP Receiver Node
 
 Run:
 
 ```
-msight_launch_rtsp     -n rtsp_node     -t rtsp_topic     --sensor-name rtsp_sensor     -u rtsp://localhost:8554/live.stream     -g 0     --rtsp-transport tcp
+msight_launch_rtsp -n rtsp_node -pt rtsp_topic --sensor-name rtsp_sensor -u rtsp://localhost:8554/live.stream -g 0 --rtsp-transport tcp
 ```
 
 ### Argument Explanation
@@ -110,7 +124,7 @@ msight_launch_rtsp     -n rtsp_node     -t rtsp_topic     --sensor-name rtsp_sen
 | Argument | Meaning |
 |---------|---------|
 | `-n rtsp_node` | Unique node name used for MSight node registration |
-| `-t rtsp_topic` | Topic name where image frames will be published |
+| `-pt rtsp_topic` | Topic name where image frames will be published |
 | `--sensor-name rtsp_sensor` | Identifier for this camera/source; embedded into all outgoing frame messages |
 | `-u` | RTSP URL of the video stream |
 | `-g 0` | Gap value — `0` means publish **every frame** |
@@ -120,12 +134,12 @@ When this node starts, it will continuously receive frames from the RTSP stream 
 
 ---
 
-# Step 4 — View Images with the Image Viewer Node
+## Step 4 — View Images with the Image Viewer Node
 
 To display the frames published on `rtsp_topic`, run:
 
 ```
-msight_launch_image_viewer -t rtsp_topic
+msight_launch_image_viewer -st rtsp_topic --name viewer
 ```
 
 A window should appear showing your MP4 video being streamed through your RTSP server → MSight receiver → MSight viewer pipeline.
@@ -133,4 +147,3 @@ A window should appear showing your MP4 video being streamed through your RTSP s
 If you see the video playing, you have successfully completed the tutorial!
 
 ---
-
