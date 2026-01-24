@@ -8,7 +8,7 @@ We will:
 2. Launch the **MSight WebSocket client node** to connect to this server and publish the received data to a topic.
 3. Use a **Bytes Viewer node** to subscribe to the topic and verify that the messages are indeed received.
 
-![Image Node Example](../assets/images/example_websocket_client.png){ width="100%" }
+![Image Node Example](./example_websocket_client.png){ width="100%" }
 
 ---
 

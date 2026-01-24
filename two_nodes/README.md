@@ -7,7 +7,7 @@ It works on **Windows**, **Linux**, or **macOS**.
 
 ## 🧰 Step 1. Install MSight Locally
 
-Follow the [Local Installation](../installation/local.md) guide to install MSight on your machine.  
+Follow the [Local Installation](../../../installation/pip.md) guide to install MSight on your machine.  
 
 ---
 

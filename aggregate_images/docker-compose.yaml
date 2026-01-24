@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  rtsp-server:
+    image: bluenviron/mediamtx:latest
+    container_name: rtsp-server
+    restart: unless-stopped
+    ports:
+      - "8554:8554"        # RTSP
+    environment:
+      MTX_PROTOCOLS: "udp,tcp"   # allow both
+
+  video-source:
+    image: jrottenberg/ffmpeg:4.4-alpine
+    container_name: rtsp-video-source
+    restart: unless-stopped
+    depends_on:
+      - rtsp-server
+    volumes:
+      - .:/data:ro    # sample.mp4 is here
+    # ffmpeg is the entrypoint; we only pass args:
+    command: >
+      -re -stream_loop -1
+      -loglevel info
+      -fflags nobuffer
+      -flags low_delay
+      -i /data/sample.mp4
+      -an
+      -c:v libx264
+      -preset veryfast
+      -tune zerolatency
+      -pix_fmt yuv420p
+      -profile:v baseline
+      -g 24 -keyint_min 24 -sc_threshold 0
+      -f rtsp
+      -rtsp_transport udp
+      rtsp://rtsp-server:8554/live.stream
