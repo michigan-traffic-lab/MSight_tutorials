@@ -155,4 +155,4 @@ Once the type is registered, deserialization is seamless: the `on_message()` cal
 traffic_light_state = data.get_traffic_state()
 self.ui.set_state(traffic_light_state)
 ```
-
+For the full code, you can refer the [tutorial source code](https://github.com/michigan-traffic-lab/MSight_tutorials/tree/main/bring_your_own_node_custom_data) and try to run the full code.
