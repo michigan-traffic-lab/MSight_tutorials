@@ -6,6 +6,7 @@ In this tutorial, we will further extend the BYON series by introducing a **cust
 
 By the end of this tutorial, you will understand how to define a custom MSight data type, how to declare it in node configurations, and how to use it seamlessly across source, processing, and sink nodes.
 
+![BYON with Custom Data Type Architecture](byon3.png){ width="100%" }
 ---
 
 ## Defining a Custom MSight Data Type
