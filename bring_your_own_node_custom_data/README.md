@@ -1,4 +1,4 @@
-## Bring Your Own Node 3: Custom Data Type
+# Bring Your Own Node 3: Custom Data Type
 
 From the previous tutorials, you have learned how to build both **pull‑based source nodes** and **event‑driven server source nodes** in MSight, and how data flows through a processing node and into a sink node. In all of those examples, we relied on **standard MSight data types**—most notably `BytesData`—to carry command messages through the node graph.
 

@@ -1,4 +1,4 @@
-## Bring Your Own Node 2: Server Source Node
+# Bring Your Own Node 2: Server Source Node
 
 In the previous BYON example, you should now be able to implement most **pull‑based data ingestion workflows** with the MSight system. External data is grabbed from the source node by periodically executing the `get_data()` method. This design works well when the node controls when and how data is retrieved—but it introduces limitations when data must arrive asynchronously from external systems. In many cases, a source node must operate as a server—such as a UDP, TCP, or WebSocket server. 
 
