@@ -1,0 +1,5 @@
+# Tutorial: Pushing Sensor Data to Cloud through AWS Kinesis
+
+This tutorial demonstrates how to set up a **simple RTSP-based sensor streaming pipeline** in MSight and stream the data to the cloud using **Amazon Kinesis Data Streams**. This architecture is the **recommended approach for real-time sensor streaming with low end-to-end latency**, making it suitable for applications such as live perception, online analytics, and time-critical safety services.
+
+In this setup, sensor data are ingested from RTSP sources at the edge, serialized by MSight, and pushed directly to AWS Kinesis for immediate downstream consumption. While this design provides near–real-time performance, it is important to note that continuous real-time streaming can be **costly at scale**. If your application does not require 100-millisecond-level latency and you are primarily focused on cost efficiency, consider using our **alternative example** that aggregates image data locally and uploads encoded video segments to the cloud for offline or near–real-time processing.
