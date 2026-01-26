@@ -104,7 +104,7 @@ What this does:
 - Receives video frames  
 - Publishes each frame to the MSight topic **`rtsp_topic`**  
 - Uses `--sensor-name rtsp_sensor` to tag metadata  
-- `-g 0` means **process every frame**  
+- `-g 0` means **process every frame**  (zero gap)
 
 Once you see logs showing frame reception, you’re ready for the next step.
 

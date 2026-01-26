@@ -149,7 +149,7 @@ msight_launch_rtsp \
 * `-pt rtsp_topic`: Specifies the MSight topic to which image frames will be published.
 * `--sensor-name rtsp_sensor`: Logical sensor identifier used internally by MSight for data provenance and downstream processing.
 * `-u rtsp://localhost:8554/live.stream`: RTSP stream URL provided by the MediaMTX server started in the previous step.
-* `-g 0`: Selects the GPU device index. Set this to `-1` to force CPU decoding if no GPU is available.
+* `-g 0`: **process every frame** (zero gap).
 * `--rtsp-transport tcp`: Forces TCP-based RTSP transport for improved stability on local or lossy networks.
 
 Once started, this node continuously pulls frames from the RTSP stream, decodes them, and publishes image data to the `rtsp_topic`. Downstream MSight nodes will subscribe to this topic to perform video aggregation and cloud upload in subsequent steps.
