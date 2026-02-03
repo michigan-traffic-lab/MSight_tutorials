@@ -218,3 +218,7 @@ __marimo__/
 .vscode/
 received_images/
 received_videos/
+mcity_data_yolo/
+runs/
+test-*/
+yolo*.pt

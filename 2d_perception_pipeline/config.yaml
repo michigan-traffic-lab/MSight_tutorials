@@ -1,0 +1,24 @@
+# data basic settings
+version: 0.1
+data_format: jpg
+
+loc_maps: 
+  gs_mcity_ne: calibration/locmap_gs_mcity_ne.npz
+  gs_mcity_sw: calibration/locmap_gs_mcity_sw.npz
+
+model_config:
+  ckpt_path: ./runs/msight_yolo26n/weights/best.pt
+  model_size: 'nano'
+  confthre: 0.2
+  nmsthre: 0.5
+  class_agnostic_nms: true
+  end2end: false
+
+fusion_config:
+  coverage_zones:
+    gs_mcity_ne: [[42.300957, -83.699084], [42.300952, -83.698754], [42.300909, -83.698668], [42.300916, -83.698540], [42.300919, -83.698028], [42.301054, -83.698048], [42.301390, -83.698502], [42.301336, -83.698769], [42.301063, -83.698779], [42.301055, -83.699100]]
+    gs_mcity_sw: [[42.300947, -83.699166], [42.300951, -83.698746], [42.300968, -83.698618], [42.300917, -83.698537], [42.300920, -83.698030], [42.300818, -83.698053], [42.300484, -83.698563], [42.300477, -83.698771], [42.300821, -83.699039]]
+
+tracker_config:
+  use_filtered_position: true
+  output_predicted: true

@@ -310,4 +310,5 @@ Notes:
 * This example reads from **one shard** for simplicity. In production (or when you use multiple partition keys), a complete consumer should read from **all shards** (or use the Kinesis Client Library / enhanced fan-out).
 * The record payload (`Data`) is a raw byte array produced by MSight serialization. Decoding it depends on your MSight message schema and serialization format.
 * You can use this script on the cloud side to consume records in real time for cloud real-time analytics or processing.
+* Kinesis is polling based; for lower latency, consider using using AWS SNS to consume records and trigger subsequent processing.
 
