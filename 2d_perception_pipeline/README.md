@@ -291,6 +291,7 @@ The intrinsics JSON should look like this (example for Mcity cameras):
 ```
 
 Where:
+
 * `f`: focal length in pixels
 * `x0`, `y0`: principal point in pixels (center of the circle)
 
@@ -305,18 +306,210 @@ For GridSmart cameras, you can use the equidistant model parameters from the Gri
 
 In the next section, we will show how to load this `.npz` calibration artifact inside the MSight localization module and validate the mapping on real detections.
 
-## Localization, Tracking, and State Estimation
-Now that we have the object detection trained and the calibration completed, we can proceed to the localization, tracking, and state estimation steps of the 2D camera perception pipeline. These steps will enable us to convert 2D detections into 3D world coordinates, track objects over time, and estimate their states for downstream applications.
+## Localization, Sensor Fusion, Tracking, and State Estimation
 
-The pipeline code is in the `run_perception_pipeline.py` script, which integrates all the components together. You can run this script to see the full pipeline in action, using the trained YOLO model and the calibration results we obtained earlier. In this script:
-1. Use some utility to load images from different sensor folder, the loaded images are in the form of dictionary, where the key is the sensor name, and the value is the image frame.
-2. For each image, run the YOLO detector to get 2D bounding boxes.
-3. Use the localization module to project the 2D bounding boxes into 3D world coordinates using the calibration results.
-4. Apply multi-object tracking to maintain consistent identities for detected objects across frames.
-5. Use a state estimator to predict the future positions of tracked objects based on their past trajectories.
-6. Visualize the results, including bounding boxes, tracks, and estimated states.
+This section describes how MSight converts raw 2D detections into **consistent world-space object states** by chaining localization, (optional) multi-sensor fusion, multi-object tracking, and state estimation. The full pipeline is implemented in `run_perception_pipeline.py`, and the code snippet below illustrates how each module is initialized and executed per frame.
 
-You should see the window showing the detection results like this:
+At a high level, each pipeline iteration processes one timestep as follows:
+
+1. Retrieve synchronized images from one or more cameras
+2. Run 2D object detection per camera
+3. Project detections into world coordinates (localization)
+4. Fuse detections across sensors (if applicable)
+5. Track objects over time
+6. Estimate kinematic state (position, velocity, heading)
+7. Visualize and optionally record results
+
+---
+
+### 1. Image Retrieval
+
+The pipeline starts by loading images using `ImageRetriever`. Images are returned as a dictionary keyed by sensor name, which allows the same pipeline to scale naturally from a single camera to multi-camera deployments.
+
+```python
+img_dir = Path("./test-data")
+img_retriever = ImageRetriever(img_dir=img_dir)
+```
+
+Each entry contains:
+
+* the image frame (`image`)
+* a timestamp (`timestamp`)
+
+This structure ensures that downstream modules (fusion, tracking) can reason about sensor identity and timing explicitly.
+
+---
+
+### 2. 2D Object Detection
+
+For each sensor image, a `Yolo26Detector` is applied. This detector wraps Ultralytics YOLOv26 and outputs MSight-native detection objects that are compatible with localization and tracking modules.
+
+```python
+detector = Yolo26Detector(
+    model_path=Path(model_path),
+    device=device,
+    confthre=confthre,
+    nmsthre=nmsthre,
+    fp16=False,
+    class_agnostic_nms=class_agnostic_nms,
+    end2end=end2end,
+)
+```
+
+Per frame:
+
+```python
+result = detector.detect(img, timestamp, "fisheye")
+```
+
+Each detection contains a 2D bounding box whose **center corresponds to the bottom footprint center**, making it suitable for geometric projection in the next step.
+
+---
+
+### 3. Localization (2D → World Coordinates)
+
+Localization converts each detection from image coordinates into a **world-space latitude / longitude** (or local map coordinates), using the pixel→world lookup maps generated during calibration.
+
+Each camera has its own `HashLocalizer`, initialized from the calibration `.npz` artifact:
+
+```python
+localizers = {
+    key: HashLocalizer(lat_map=item['lat_map'], lon_map=item['lon_map'])
+    for key, item in loc_maps.items()
+}
+```
+
+During runtime:
+
+```python
+localizer.localize(detection_result)
+```
+
+Internally, the localizer:
+
+* takes the bottom-center of each bounding box
+* looks up the corresponding world coordinate
+* writes `obj.lat` and `obj.lon` into each object
+
+Objects that fail localization (e.g., projected outside the calibrated region) are filtered out:
+
+```python
+detection_result.object_list = [
+    obj for obj in detection_result.object_list
+    if is_number(obj.lat) and is_number(obj.lon)
+]
+```
+
+This step produces **metric-consistent detections** suitable for fusion and tracking.
+
+---
+
+### 4. Multi-Sensor Fusion
+
+When multiple cameras observe overlapping regions, MSight performs spatial fusion using a `HungarianFuser`.
+
+```python
+fuser = HungarianFuser(
+    coverage_zones=config["fusion_config"]["coverage_zones"]
+)
+```
+
+Fusion:
+
+```python
+fusion_result = fuser.fuse(detection_buffer)
+```
+
+Key characteristics:
+
+* Associations are solved using Hungarian matching in world space
+* Each physical object appears **at most once** in the fused output
+* Coverage zones define which sensors are trusted in which regions
+
+For single-camera setups, this step is still executed but effectively acts as a pass-through.
+
+---
+
+### 5. Multi-Object Tracking
+
+Tracking assigns **persistent IDs** to objects over time using a SORT-based tracker operating in world coordinates.
+
+```python
+tracker = SortTracker(
+    use_filtered_position=config["tracker_config"].get("use_filtered_position", False),
+    output_predicted=config["tracker_config"].get("output_predicted", False),
+)
+```
+
+Tracking step:
+
+```python
+tracking_result = tracker.track(fusion_result)
+```
+
+The tracker:
+
+* matches current detections to existing tracks
+* handles object appearance and disappearance
+* optionally outputs predicted positions when detections are missing
+
+This produces temporally consistent trajectories required for motion analysis.
+
+---
+
+### 6. State Estimation
+
+After tracking, MSight estimates object kinematic states using a lightweight finite-difference estimator:
+
+```python
+state_estimator = FiniteDifferenceStateEstimator()
+result = state_estimator.estimate(tracking_result)
+```
+
+The estimator computes:
+
+* velocity
+* heading
+
+This step prepares the data for downstream modules such as:
+
+* conflict detection
+* behavior analysis
+* cooperative perception message generation
+
+---
+
+### 7. Visualization and Output
+
+Finally, results are wrapped into a `Frame` object and rendered using the MSight visualizer:
+
+```python
+result_frame = Frame(step)
+for obj in result:
+    result_frame.add_object(obj)
+
+vis_img = visualizer.render(result_frame, with_traj=True)
+```
+
+For debugging and evaluation, the pipeline also visualizes:
+
+* world-space trajectories on a map background
+* per-camera 2D detections
+
+Both views are concatenated side-by-side and optionally written to a video file (`output_pipeline.mp4`) for offline inspection.
+
+---
+
+### Summary
+
+By the end of this stage, the pipeline has transformed raw camera images into:
+
+* stable world-space object positions
+* consistent object identities across time
+* estimated kinematic states
+
+These outputs form the foundation for higher-level MSight applications such as near-miss detection, traffic analytics, and real-time roadside intelligence deployment. The pipeline code is provided in the tutorial repository, named `run_perception_pipeline.py`, when running the code, you should see a visualization similar to below:
+
 
 <video autoplay muted loop playsinline width="100%">
   <source src="./output_pipeline.mp4" type="video/mp4">

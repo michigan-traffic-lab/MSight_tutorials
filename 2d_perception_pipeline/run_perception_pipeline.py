@@ -1,4 +1,3 @@
-## python main.py -c config.yaml
 from msight_vision.utils import ImageRetriever
 from msight_vision import Yolo26Detector, HashLocalizer, SortTracker, ClassicWarper
 from msight_vision.fuser import HungarianFuser
@@ -49,11 +48,6 @@ state_estimator = FiniteDifferenceStateEstimator()
 
 ## initialize visualizer
 visualizer = Visualizer("./viz/mcity.png")
-
-## initialize video writer (will be created after first frame)
-video_writer = None
-output_video_path = Path("./output_pipeline.mp4")
-video_fps = 10
 
 step = 0
 while True:
@@ -119,26 +113,8 @@ while True:
     cv2.imshow("Combined Results", combined_img)
     cv2.waitKey(1)  # refresh display
     
-    ## write frame to video
-    if video_writer is None:
-        h, w = combined_img.shape[:2]
-        fourcc = cv2.VideoWriter_fourcc(*"avc1")  # h264 codec
-        video_writer = cv2.VideoWriter(str(output_video_path), fourcc, video_fps, (w, h))
-        if not video_writer.isOpened():
-            # fallback to mp4v if h264 not available
-            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-            video_writer = cv2.VideoWriter(str(output_video_path), fourcc, video_fps, (w, h))
-        if not video_writer.isOpened():
-            raise RuntimeError(f"Failed to open VideoWriter for {output_video_path}")
-        print(f"[OK] Video writer initialized: {output_video_path} ({w}x{h} @ {video_fps} fps)")
-    video_writer.write(combined_img)
-    
     print(f"  Visualization:    {(time.perf_counter() - t0) * 1000:.2f} ms")
 
     step += 1
-
-if video_writer is not None:
-    video_writer.release()
-    print(f"\n[OK] Video saved: {output_video_path.resolve()}")
 
 cv2.destroyAllWindows() 
