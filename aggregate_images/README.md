@@ -169,3 +169,10 @@ The received video files and their associated metadata will be written to the `r
 * `test_camera_20260124_112900_000000.json`
 
 At this point, you have successfully aggregated real-time image streams into video files using MSight.
+
+## Data Format
+For each video file, there is a same name JSON file containing metadata about the video segment, including the sensor name, start and end timestamps, frame count, and any additional attributes. This metadata is crucial for downstream indexing, search, and retrieval of video data based on temporal and contextual criteria. The json data contains the following attributes:
+- `capture_timestamps`: List of timestamps corresponding to each frame in the video segment.
+- `detection_results`: If the video is processed with MSight perception nodes, this field contains the aggregated detection results for all frames in the video segment. 
+- `frame_ids`: List of unique frame IDs for each frame in the video segment, which can be used to correlate with other data streams or logs in the MSight system.
+    
