@@ -1,0 +1,3 @@
+user default off
+user msight on >RatOxTigerRabbitDragonSnakeHorseSheep +@read +@write +@pubsub +@connection -@dangerous -@admin -@scripting ~* &*
+

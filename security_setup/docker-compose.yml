@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "127.0.0.1:6380:6380"
+    volumes:
+      - ./users.acl:/usr/local/etc/redis/users.acl:ro
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./certs:/usr/local/etc/redis/certs:ro
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: unless-stopped
+
+  nats-server:
+    image: nats:latest
+    # container_name: nats-server
+    ports:
+      - "127.0.0.1:4222:4222"
+      - "127.0.0.1:8222:8222"
+    command: >
+      -p 4222
+      -m 8222
+      -c /etc/nats/nats-sip.conf
+    restart: always
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-sip.conf
+      - ./certs:/etc/nats/certs:ro
+
+
+  msight_image_node:
+    image: michigantrafficlab/msight-core:latest
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - redis
+    command: ["msight_launch_local_image", "-n", "test_local", "-pt", "local", "--sensor-name", "local_image", "-p", "/msight/images/myphoto.jpg"]
+    volumes:
+      - ./certs:/usr/local/etc/redis/certs:ro
+      - ./images:/msight/images:ro
+    env_file:
+      - .env
